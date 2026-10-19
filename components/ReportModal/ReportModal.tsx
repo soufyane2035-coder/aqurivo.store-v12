@@ -257,7 +257,7 @@ export function ReportModal({
           message: message.trim(),
           orderRef: isOrderIssue ? orderRef.trim() : '',
           locale: activeLocale,
-          websiteUrl,
+          client_hp_verify: websiteUrl,
         }),
       });
 
@@ -650,15 +650,15 @@ export function ReportModal({
                 />
               </div>
 
-              {/* حقل Honeypot مخفي */}
+              {/* حقل حماية من البوتات مخفي تماماً */}
               <div className={styles.honeypotWrap} aria-hidden="true">
-                <label htmlFor="report-website-url">Website</label>
+                <label htmlFor="report-hp-verify">Verification</label>
                 <input
-                  id="report-website-url"
+                  id="report-hp-verify"
                   type="text"
-                  name="websiteUrl"
+                  name="client_hp_verify"
                   tabIndex={-1}
-                  autoComplete="off"
+                  autoComplete="new-password"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
                 />

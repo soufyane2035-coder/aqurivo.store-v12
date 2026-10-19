@@ -7,6 +7,8 @@ import type { Locale, ReportReason, ReportRecord, ReportStatus, ReportType } fro
 
 const COLLECTION = 'reports';
 const FALLBACK_FILE = path.join(process.cwd(), 'server', 'data', 'reports-fallback.json');
+const AQURIVO_DATA_FILE = path.join(process.cwd(), 'server', 'data', 'aqurivostor-data.json');
+const TMP_DATA_FILE = path.join('/tmp', 'aqurivostor-db.json');
 
 function ensureFallbackDir() {
   try {
@@ -41,6 +43,38 @@ function writeFallbackReports(reports: ReportRecord[]): void {
     fs.writeFileSync(FALLBACK_FILE, JSON.stringify(reports, null, 2), 'utf-8');
   } catch {
     // Ignore
+  }
+}
+
+function syncReportToLocalStore(record: ReportRecord): void {
+  // 1. Write to reports-fallback.json
+  const list = readFallbackReports();
+  const exists = list.some((r) => r.id === record.id);
+  if (!exists) {
+    list.unshift(record);
+  } else {
+    const idx = list.findIndex((r) => r.id === record.id);
+    if (idx !== -1) list[idx] = record;
+  }
+  writeFallbackReports(list);
+
+  // 2. Also write directly to aqurivostor-data.json and /tmp mirror
+  for (const filePath of [AQURIVO_DATA_FILE, TMP_DATA_FILE]) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw) as Record<string, any>;
+        if (parsed && typeof parsed === 'object') {
+          if (!parsed.reports || typeof parsed.reports !== 'object') {
+            parsed.reports = {};
+          }
+          parsed.reports[record.id] = { ...record };
+          fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2), 'utf-8');
+        }
+      }
+    } catch {
+      // Ignore
+    }
   }
 }
 
@@ -146,17 +180,15 @@ export async function createReportServer(
     createdAt,
   };
 
-  // 1. Save to local fallback file immediately
-  const localList = readFallbackReports();
-  localList.unshift(recordToStore);
-  writeFallbackReports(localList);
+  // 1. Save to local stores (fallback file, aqurivostor-data.json, tmp) immediately
+  syncReportToLocalStore(recordToStore);
 
-  // 2. Try saving to Firestore if configured
+  // 2. Synchronize to Firestore asynchronously (non-blocking so visitor request never hangs)
   const db = getAdminDb();
   if (db) {
     try {
       const docRef = db.collection(COLLECTION).doc(id);
-      await docRef.set({
+      void docRef.set({
         type,
         reason,
         productSlug,
@@ -168,9 +200,11 @@ export async function createReportServer(
         status: 'new',
         createdAt,
         ipHash,
+      }).catch((err) => {
+        console.warn('[AQURIVO Reports Repo] Background Firestore write skipped/stored locally:', err);
       });
-    } catch (err) {
-      console.warn('[AQURIVO Reports Repo] Firestore write failed, stored in local fallback:', err);
+    } catch {
+      // Ignore background sync errors
     }
   }
 
@@ -183,64 +217,86 @@ export async function createReportServer(
 }
 
 export async function listReportsAdmin(): Promise<ReportRecord[]> {
-  const localList = readFallbackReports();
-  const db = getAdminDb();
+  const map = new Map<string, ReportRecord>();
 
-  if (!db) {
-    return localList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  // 1. Read from reports-fallback.json
+  const fallbackList = readFallbackReports();
+  for (const item of fallbackList) {
+    if (item && item.id) {
+      map.set(item.id, item);
+    }
   }
 
-  try {
-    const snap = await db
-      .collection(COLLECTION)
-      .orderBy('createdAt', 'desc')
-      .limit(200)
-      .get();
-
-    const firestoreList: ReportRecord[] = snap.docs.map((doc) => {
-      const data = doc.data() as Record<string, unknown>;
-      const type: ReportType =
-        data.type === 'order_issue' ? 'order_issue' : 'product_issue';
-      let reason: ReportReason = 'other';
-      try {
-        reason = normalizeReportReason(data.reason, type);
-      } catch {
-        reason = type === 'order_issue' ? 'order_issue' : 'other';
+  // 2. Read from aqurivostor-data.json and /tmp mirror
+  for (const filePath of [AQURIVO_DATA_FILE, TMP_DATA_FILE]) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.reports === 'object' && parsed.reports !== null) {
+          for (const [id, val] of Object.entries(parsed.reports)) {
+            if (val && typeof val === 'object' && !map.has(id)) {
+              map.set(id, val as ReportRecord);
+            }
+          }
+        }
       }
-      const status: ReportStatus =
-        data.status === 'in_progress' || data.status === 'resolved'
-          ? data.status
-          : 'new';
+    } catch {
+      // Ignore read error
+    }
+  }
 
-      return {
-        id: doc.id,
-        type,
-        reason,
-        productSlug: String(data.productSlug || ''),
-        productName: String(data.productName || ''),
-        email: String(data.email || ''),
-        message: String(data.message || ''),
-        orderRef: String(data.orderRef || ''),
-        locale: data.locale === 'en' ? 'en' : 'ar',
-        status,
-        createdAt: String(data.createdAt || new Date().toISOString()),
-      };
-    });
+  // 3. Read from Cloud Firestore adapter
+  try {
+    const db = getAdminDb();
+    if (db) {
+      const snap = await db
+        .collection(COLLECTION)
+        .orderBy('createdAt', 'desc')
+        .limit(200)
+        .get();
 
-    // Merge and deduplicate by id
-    const map = new Map<string, ReportRecord>();
-    for (const item of [...firestoreList, ...localList]) {
-      if (item && item.id && !map.has(item.id)) {
-        map.set(item.id, item);
+      for (const doc of snap.docs) {
+        const data = doc.data() as Record<string, unknown>;
+        const type: ReportType =
+          data.type === 'order_issue' ? 'order_issue' : 'product_issue';
+        let reason: ReportReason = 'other';
+        try {
+          reason = normalizeReportReason(data.reason, type);
+        } catch {
+          reason = type === 'order_issue' ? 'order_issue' : 'other';
+        }
+        const status: ReportStatus =
+          data.status === 'in_progress' || data.status === 'resolved'
+            ? data.status
+            : 'new';
+
+        const record: ReportRecord = {
+          id: doc.id,
+          type,
+          reason,
+          productSlug: String(data.productSlug || ''),
+          productName: String(data.productName || ''),
+          email: String(data.email || ''),
+          message: String(data.message || ''),
+          orderRef: String(data.orderRef || ''),
+          locale: data.locale === 'en' ? 'en' : 'ar',
+          status,
+          createdAt: String(data.createdAt || new Date().toISOString()),
+        };
+
+        if (!map.has(record.id)) {
+          map.set(record.id, record);
+        }
       }
     }
-
-    const merged = Array.from(map.values());
-    merged.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return merged;
   } catch {
-    return localList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    // If cloud adapter fails, the local map already has all records
   }
+
+  const merged = Array.from(map.values());
+  merged.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return merged;
 }
 
 export async function countNewReportsAdmin(): Promise<number> {
@@ -301,17 +357,36 @@ export async function updateReportStatusAdmin(
     throw new ValidationError('Invalid report status.', 'status');
   }
 
-  // Update local fallback
+  // 1. Update local fallback list
   const localList = readFallbackReports();
   const updatedLocal = localList.map((r) => (r.id === reportId ? { ...r, status } : r));
   writeFallbackReports(updatedLocal);
 
+  // 2. Update aqurivostor-data.json and /tmp mirror
+  for (const filePath of [AQURIVO_DATA_FILE, TMP_DATA_FILE]) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.reports === 'object' && parsed.reports !== null) {
+          if (parsed.reports[reportId]) {
+            parsed.reports[reportId].status = status;
+            fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2), 'utf-8');
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  // 3. Update Firestore in background
   const db = getAdminDb();
   if (db) {
     try {
-      await db.collection(COLLECTION).doc(reportId).update({ status });
+      void db.collection(COLLECTION).doc(reportId).update({ status }).catch(() => undefined);
     } catch {
-      // Ignore if doc only exists in local fallback
+      // Ignore
     }
   }
 }

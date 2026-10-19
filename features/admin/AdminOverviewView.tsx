@@ -17,6 +17,7 @@ interface AdminOverviewViewProps {
   products: Product[];
   clicks: OutboundClickRecord[];
   messages: ContactMessage[];
+  reports: ReportRecord[];
   firebaseAdminReady: boolean;
   cloudinaryReady: boolean;
 }
@@ -25,6 +26,7 @@ export function AdminOverviewView({
   products: initialProducts,
   clicks,
   messages,
+  reports,
   firebaseAdminReady,
   cloudinaryReady,
 }: AdminOverviewViewProps) {
@@ -47,6 +49,8 @@ export function AdminOverviewView({
   const clicks30d = clicks.filter(
     (c) => nowMs - new Date(c.createdAt).getTime() <= 30 * dayMs
   ).length;
+
+  const newReportsCount = reports.filter((r) => r.status === 'new').length;
 
   const stalePriceProducts = products.filter((p) => {
     const updatedMs = new Date(p.priceUpdatedAt).getTime();
@@ -135,6 +139,17 @@ export function AdminOverviewView({
 
       {/* KPI Metrics */}
       <div className={styles.kpiGrid}>
+        <Link href="/admin/reports" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className={styles.kpiCard} style={{ cursor: 'pointer', border: newReportsCount > 0 ? '2px solid var(--accent, #f59e0b)' : undefined }}>
+            <span className={styles.kpiLabel}>
+              {isAr ? 'بلاغات جديدة' : 'New Reports'}
+            </span>
+            <span className={`${styles.kpiValue} tabularNums`} style={{ color: newReportsCount > 0 ? 'var(--accent, #f59e0b)' : undefined }}>
+              {newReportsCount}
+            </span>
+          </div>
+        </Link>
+
         <div className={styles.kpiCard}>
           <span className={styles.kpiLabel}>
             {isAr ? 'نقرات اليوم (24 ساعة)' : 'Clicks Today (24h)'}
@@ -147,13 +162,6 @@ export function AdminOverviewView({
             {isAr ? 'نقرات آخر 7 أيام' : 'Clicks (Last 7 Days)'}
           </span>
           <span className={`${styles.kpiValue} tabularNums`}>{clicks7d}</span>
-        </div>
-
-        <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>
-            {isAr ? 'نقرات آخر 30 يوماً' : 'Clicks (Last 30 Days)'}
-          </span>
-          <span className={`${styles.kpiValue} tabularNums`}>{clicks30d}</span>
         </div>
 
         <div className={styles.kpiCard}>

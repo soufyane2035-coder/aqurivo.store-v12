@@ -10469,7 +10469,17 @@
       "id": "zojirushi-ns-lgc05xb-3-cup-rice-cooker-amazon"
     }
   },
-  "testimonials": {},
+  "testimonials": {
+    "7ef8f5b13f1f6357fcb0": {
+      "createdAt": "2026-10-19T13:34:17.804Z",
+      "rating": 5,
+      "id": "7ef8f5b13f1f6357fcb0",
+      "name": "محمد",
+      "locale": "ar",
+      "text": "الموقع لا باس بيه",
+      "approved": true
+    }
+  },
   "reviews": {
     "0be78604ff0d3cc1b3ae": {
       "productSlug": "24oz-slim-insulated-water-bottle-straw-amazon",
@@ -10478,6 +10488,24 @@
       "comment": "منتج ممتاز جداً ويحفظ البرودة طوال اليوم، أنصح به بشدة!",
       "createdAt": "2026-10-05T13:07:28.381Z",
       "approved": true
+    },
+    "72daee827f518e8b78af": {
+      "productSlug": "cosori-pro-le-5qt-air-fryer-amazon",
+      "userName": "محمد",
+      "rating": 2,
+      "comment": "المنتج لا باس بيه",
+      "createdAt": "2026-10-18T17:25:05.192Z",
+      "approved": true,
+      "id": "72daee827f518e8b78af"
+    },
+    "c3c2a50416a9be1640e6": {
+      "productSlug": "cosori-pro-le-5qt-air-fryer-amazon",
+      "userName": "بوشوة",
+      "rating": 5,
+      "comment": "النتج حقا رأع  وا راي تمنه المناسب هوا 30 $",
+      "createdAt": "2026-10-18T17:24:17.620Z",
+      "approved": true,
+      "id": "c3c2a50416a9be1640e6"
     }
   },
   "articles": {
@@ -13563,7 +13591,22 @@
     }
   },
   "clicks": {},
-  "reports": {},
+  "reports": {
+    "rep_1792424106181_4pueh": {
+      "type": "product_issue",
+      "reason": "broken_link",
+      "productSlug": "test",
+      "productName": "Test Product",
+      "email": "test@example.com",
+      "message": "هذا رابط لا يعمل وأردت الإبلاغ عنه",
+      "orderRef": "",
+      "locale": "ar",
+      "status": "new",
+      "createdAt": "2026-10-19T15:35:06.181Z",
+      "ipHash": "aea3add55d92a5508fa7a87c99b9751d",
+      "id": "rep_1792424106181_4pueh"
+    }
+  },
   "messages": {},
   "admin_secrets": {
     "canopy_config": {

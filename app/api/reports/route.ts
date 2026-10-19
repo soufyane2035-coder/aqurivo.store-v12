@@ -21,26 +21,29 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Record<string, unknown>;
 
-    // 1. Silent Honeypot check: if hidden field is filled, reject silently without storing
+    // 1. Silent Honeypot check: reject bot submissions without false positives
     const honeypotVal =
-      (typeof body.websiteUrl === 'string' ? body.websiteUrl : '') ||
-      (typeof body.honeypot === 'string' ? body.honeypot : '');
+      typeof body.client_hp_verify === 'string'
+        ? body.client_hp_verify
+        : typeof body.honeypot === 'string'
+          ? body.honeypot
+          : '';
     if (honeypotVal.trim().length > 0) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    // 2. Hash IP (never store raw IP) & enforce max 3 reports per IP per hour
+    // 2. Hash IP (never store raw IP) & enforce 20 reports per IP per hour
     const rawIp = await getClientIpFromHeaders();
     const ipHash = hashClientIpDaily(rawIp);
 
-    const rate = checkRateLimit(`reports_hourly:${ipHash}`, 3, 60 * 60 * 1000);
+    const rate = checkRateLimit(`reports_hourly:${ipHash}`, 20, 60 * 60 * 1000);
     if (!rate.allowed) {
       const isEn = body.locale === 'en';
       return NextResponse.json(
         {
           error: isEn
-            ? 'You have reached the hourly limit of 3 reports. Please try again later.'
-            : 'لقد وصلت للحد الأقصى (3 بلاغات في الساعة). يرجى المحاولة لاحقاً.',
+            ? 'You have reached the hourly limit of reports. Please try again later.'
+            : 'لقد وصلت للحد الأقصى من البلاغات في الساعة. يرجى المحاولة لاحقاً.',
         },
         { status: 429 }
       );

@@ -218,6 +218,37 @@ export function AdminReportsView({
     }
   };
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchReports = async (showNotification = false) => {
+    setIsRefreshing(true);
+    try {
+      const res = await fetch('/api/reports');
+      if (res.ok) {
+        const data = (await res.json()) as { reports?: ReportRecord[] };
+        if (Array.isArray(data.reports)) {
+          setReports(data.reports);
+          if (showNotification) {
+            showToast(isAr ? 'تم تحديث قائمة البلاغات بنجاح.' : 'Reports list refreshed.', 'success');
+          }
+        }
+      }
+    } catch {
+      if (showNotification) {
+        showToast(isAr ? 'تعذر تحديث البلاغات.' : 'Failed to refresh reports.', 'error');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      fetchReports(false);
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <>
       <div className={shellStyles.pageHeader}>
@@ -231,6 +262,17 @@ export function AdminReportsView({
               : 'Review product issue reports and order assistance requests.'}
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => fetchReports(true)}
+          disabled={isRefreshing}
+          className={styles.statusBtn}
+          style={{ padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+        >
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} aria-hidden="true" />
+          <span>{isAr ? 'تحديث البلاغات' : 'Refresh Reports'}</span>
+        </button>
       </div>
 
       <div className={styles.statsRow}>
