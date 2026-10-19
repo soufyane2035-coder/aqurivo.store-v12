@@ -250,6 +250,183 @@
   gap: var(--space-2);
 }
 
+/* Editorial Specs & Comparison Tables */
+.proseContent table {
+  width: 100%;
+  max-inline-size: 100%;
+  margin-block: var(--space-6);
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.proseContent thead {
+  background-color: var(--color-bg-subtle);
+}
+
+.proseContent th {
+  padding: 13px 16px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: start;
+  border-block-end: 2px solid var(--color-border-strong);
+  letter-spacing: 0;
+}
+
+.proseContent td {
+  padding: 14px 16px;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  border-block-end: 1px solid var(--color-border-hairline);
+  vertical-align: top;
+}
+
+.proseContent tr:last-child td {
+  border-block-end: none;
+}
+
+.proseContent tr:hover td {
+  background-color: var(--color-bg-subtle);
+}
+
+.proseContent td:first-child {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  width: 24%;
+  min-inline-size: 140px;
+}
+
+.proseContent td:nth-child(2) {
+  color: var(--color-text-primary);
+  width: 36%;
+}
+
+.proseContent td:nth-child(3) {
+  color: var(--color-text-secondary);
+  width: 40%;
+}
+
+@media (max-width: 680px) {
+  .proseContent table {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    margin-block: var(--space-4);
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .proseContent thead {
+    display: none;
+  }
+
+  .proseContent tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .proseContent tr {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-hairline);
+    border-inline-start: 4px solid var(--color-accent-primary);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    box-shadow: var(--shadow-card);
+    gap: 8px;
+  }
+
+  .proseContent tr:hover td {
+    background-color: transparent;
+  }
+
+  .proseContent td {
+    display: block;
+    padding: 0;
+    border: none;
+    width: 100% !important;
+    min-inline-size: 0 !important;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+
+  .proseContent td:first-child {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    padding-block-end: 8px;
+    border-block-end: 1px solid var(--color-border-hairline);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .proseContent td:nth-child(2) {
+    background-color: var(--color-bg-subtle);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    font-size: 13.5px;
+  }
+
+  .proseContent td:nth-child(3) {
+    background-color: var(--color-accent-subtle);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    border-inline-start: 3px solid var(--color-accent-primary);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  :global([dir='rtl']) .proseContent td:nth-child(2)::before {
+    content: 'المواصفات المعلنة:';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    margin-block-end: 3px;
+  }
+
+  :global([dir='rtl']) .proseContent td:nth-child(3)::before {
+    content: 'التقييم والتحليل العملي:';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-accent-primary);
+    margin-block-end: 3px;
+  }
+
+  :global([dir='ltr']) .proseContent td:nth-child(2)::before {
+    content: 'Official Specification:';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    margin-block-end: 3px;
+  }
+
+  :global([dir='ltr']) .proseContent td:nth-child(3)::before {
+    content: 'Practical Assessment:';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-accent-primary);
+    margin-block-end: 3px;
+  }
+}
+
 .proseContent figure {
   margin-block: var(--space-5);
   margin-inline: 0;

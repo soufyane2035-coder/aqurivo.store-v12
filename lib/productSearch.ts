@@ -1,4 +1,4 @@
-import type { Article, Product } from '@/types';
+import type { Article, Product, LocalizedText } from '@/types';
 import {
   detectProductArchetype,
   areArchetypesSubstitutes,
@@ -1777,15 +1777,17 @@ export function computeProductDataQualityScore(product: Product): number {
   }
 
   // 2. Editorial Curation & Expert Verdict (up to 25 pts)
+  const whyObj = product.whyWePickedIt as unknown as (LocalizedText | string);
   const hasWhy = Boolean(
-    (typeof product.whyWePickedIt === 'string' && product.whyWePickedIt.trim()) ||
-    (typeof product.whyWePickedIt === 'object' && (product.whyWePickedIt?.ar || product.whyWePickedIt?.en))
+    (typeof whyObj === 'string' && whyObj.trim()) ||
+    (whyObj && typeof whyObj === 'object' && ((whyObj as LocalizedText).ar || (whyObj as LocalizedText).en))
   );
   if (hasWhy) score += 20;
 
+  const considerObj = product.whatToConsider as unknown as (LocalizedText | string);
   const hasConsider = Boolean(
-    (typeof product.whatToConsider === 'string' && product.whatToConsider.trim()) ||
-    (typeof product.whatToConsider === 'object' && (product.whatToConsider?.ar || product.whatToConsider?.en))
+    (typeof considerObj === 'string' && considerObj.trim()) ||
+    (considerObj && typeof considerObj === 'object' && ((considerObj as LocalizedText).ar || (considerObj as LocalizedText).en))
   );
   if (hasConsider) score += 5;
 
@@ -1813,7 +1815,7 @@ export function computeProductDataQualityScore(product: Product): number {
   if (typeof product.priceAmount === 'number' && product.priceAmount > 0) {
     score += 10;
   }
-  if (product.sourceUrl || product.affiliateUrl) {
+  if (product.affiliateUrl) {
     score += 5;
   }
 

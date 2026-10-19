@@ -1,9 +1,48 @@
 import 'server-only';
+import fs from 'fs';
+import path from 'path';
 import { getAdminDb } from '@/server/config/firebase-admin';
 import { sanitizeEmail, sanitizePlainText, ValidationError } from '@/server/validators';
 import type { Locale, ReportReason, ReportRecord, ReportStatus, ReportType } from '@/types';
 
 const COLLECTION = 'reports';
+const FALLBACK_FILE = path.join(process.cwd(), 'server', 'data', 'reports-fallback.json');
+
+function ensureFallbackDir() {
+  try {
+    const dir = path.dirname(FALLBACK_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch {
+    // Ignore
+  }
+}
+
+function readFallbackReports(): ReportRecord[] {
+  try {
+    ensureFallbackDir();
+    if (fs.existsSync(FALLBACK_FILE)) {
+      const raw = fs.readFileSync(FALLBACK_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed as ReportRecord[];
+      }
+    }
+  } catch {
+    // Ignore
+  }
+  return [];
+}
+
+function writeFallbackReports(reports: ReportRecord[]): void {
+  try {
+    ensureFallbackDir();
+    fs.writeFileSync(FALLBACK_FILE, JSON.stringify(reports, null, 2), 'utf-8');
+  } catch {
+    // Ignore
+  }
+}
 
 const VALID_PRODUCT_REASONS: ReportReason[] = [
   'broken_link',
@@ -91,15 +130,10 @@ export async function createReportServer(
     type === 'order_issue' ? sanitizePlainText(input.orderRef, 120) : '';
   const locale: Locale = input.locale === 'en' ? 'en' : 'ar';
 
-  const db = getAdminDb();
-  if (!db) {
-    throw new Error('Report service is temporarily unavailable.');
-  }
-
   const createdAt = new Date().toISOString();
-  const docRef = db.collection(COLLECTION).doc();
-
-  const recordToStore = {
+  const id = `rep_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const recordToStore: ReportRecord = {
+    id,
     type,
     reason,
     productSlug,
@@ -110,13 +144,38 @@ export async function createReportServer(
     locale,
     status: 'new' as ReportStatus,
     createdAt,
-    ipHash,
   };
 
-  await docRef.set(recordToStore);
+  // 1. Save to local fallback file immediately
+  const localList = readFallbackReports();
+  localList.unshift(recordToStore);
+  writeFallbackReports(localList);
+
+  // 2. Try saving to Firestore if configured
+  const db = getAdminDb();
+  if (db) {
+    try {
+      const docRef = db.collection(COLLECTION).doc(id);
+      await docRef.set({
+        type,
+        reason,
+        productSlug,
+        productName,
+        email,
+        message,
+        orderRef,
+        locale,
+        status: 'new',
+        createdAt,
+        ipHash,
+      });
+    } catch (err) {
+      console.warn('[AQURIVO Reports Repo] Firestore write failed, stored in local fallback:', err);
+    }
+  }
 
   return {
-    id: docRef.id,
+    id,
     type,
     status: 'new',
     createdAt,
@@ -124,8 +183,12 @@ export async function createReportServer(
 }
 
 export async function listReportsAdmin(): Promise<ReportRecord[]> {
+  const localList = readFallbackReports();
   const db = getAdminDb();
-  if (!db) return [];
+
+  if (!db) {
+    return localList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
 
   try {
     const snap = await db
@@ -134,7 +197,7 @@ export async function listReportsAdmin(): Promise<ReportRecord[]> {
       .limit(200)
       .get();
 
-    const items: ReportRecord[] = snap.docs.map((doc) => {
+    const firestoreList: ReportRecord[] = snap.docs.map((doc) => {
       const data = doc.data() as Record<string, unknown>;
       const type: ReportType =
         data.type === 'order_issue' ? 'order_issue' : 'product_issue';
@@ -164,10 +227,19 @@ export async function listReportsAdmin(): Promise<ReportRecord[]> {
       };
     });
 
-    items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return items;
+    // Merge and deduplicate by id
+    const map = new Map<string, ReportRecord>();
+    for (const item of [...firestoreList, ...localList]) {
+      if (item && item.id && !map.has(item.id)) {
+        map.set(item.id, item);
+      }
+    }
+
+    const merged = Array.from(map.values());
+    merged.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return merged;
   } catch {
-    return [];
+    return localList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 }
 
@@ -225,12 +297,21 @@ export async function updateReportStatusAdmin(
   reportId: string,
   status: ReportStatus
 ): Promise<void> {
-  const db = getAdminDb();
-  if (!db) {
-    throw new Error('Database connection is not configured yet.');
-  }
   if (status !== 'new' && status !== 'in_progress' && status !== 'resolved') {
     throw new ValidationError('Invalid report status.', 'status');
   }
-  await db.collection(COLLECTION).doc(reportId).update({ status });
+
+  // Update local fallback
+  const localList = readFallbackReports();
+  const updatedLocal = localList.map((r) => (r.id === reportId ? { ...r, status } : r));
+  writeFallbackReports(updatedLocal);
+
+  const db = getAdminDb();
+  if (db) {
+    try {
+      await db.collection(COLLECTION).doc(reportId).update({ status });
+    } catch {
+      // Ignore if doc only exists in local fallback
+    }
+  }
 }

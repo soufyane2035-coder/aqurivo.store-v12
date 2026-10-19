@@ -72,8 +72,8 @@ export function AddTestimonialForm({ onClose }: AddTestimonialFormProps) {
           </span>
           <p className={styles.successText}>
             {isAr
-              ? 'شكراً! سيتم مراجعة شهادتك ونشرها قريباً'
-              : 'Thank you! Your review will be checked and published soon'}
+              ? 'شكراً لك! تم حفظ شهادتك بنجاح وهي قيد المراجعة لتظهر قريباً.'
+              : 'Thank you! Your review was successfully saved and is pending review.'}
           </p>
           {onClose && (
             <button

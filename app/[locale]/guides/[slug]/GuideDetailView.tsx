@@ -140,7 +140,7 @@ export function GuideDetailView({
   }, [article.editorVerdict, isAr, t]);
 
   return (
-    <div className={styles.pageShell}>
+    <div className={styles.pageShell} dir={isAr ? 'rtl' : 'ltr'}>
       <SiteHeader />
 
       <main id="main-content" className={`siteContainer ${styles.main}`}>
