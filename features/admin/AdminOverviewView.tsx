@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, CheckCircle2, Plus, RefreshCw } from 'lucide-react';
-import type { ContactMessage, Product } from '@/types';
+import type { ContactMessage, Product, ReportRecord } from '@/types';
 import type { OutboundClickRecord } from '@/server/repositories/clicks.repo';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useSaved } from '@/features/saved/SavedProvider';
