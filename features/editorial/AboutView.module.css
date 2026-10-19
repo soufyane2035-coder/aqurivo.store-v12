@@ -1,0 +1,990 @@
+/* ==========================================================================
+   AQURIVO Master Editorial Dossier & Team Archive — CSS Module
+   Crafted with Zero-Card Discipline, Recessed Hairlines & Architectural Gravitas
+   ========================================================================== */
+
+.pageShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-canvas);
+}
+
+.main {
+  flex: 1;
+  padding-block-start: var(--space-10);
+  padding-block-end: var(--space-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* --------------------------------------------------------------------------
+   1. Dossier Master Header & Preamble
+   -------------------------------------------------------------------------- */
+.dossierHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-block-end: var(--space-10);
+  border-block-end: 1px solid var(--color-border-hairline);
+  position: relative;
+}
+
+.archivalTagStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.archivalPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-3);
+  padding-block: var(--space-1);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent-primary);
+  letter-spacing: 0.04em;
+}
+
+.pulseDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(14, 94, 79, 0.2);
+}
+
+.heroTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  color: var(--color-text-primary);
+  margin: 0;
+  max-inline-size: 26ch;
+}
+
+.heroSubtitle {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  max-inline-size: 68ch;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. Origin Story Section (Narrative Layout)
+   -------------------------------------------------------------------------- */
+.originSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.originHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--leading-snug);
+}
+
+.sectionSubtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  line-height: var(--leading-normal);
+}
+
+.narrativeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 900px) {
+  .narrativeGrid {
+    grid-template-columns: 1.4fr 1fr;
+    gap: var(--space-10);
+    align-items: start;
+  }
+}
+
+.narrativeProse {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.narrativeParagraph {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  margin: 0;
+  text-align: justify;
+}
+
+.originCalloutBox {
+  padding: var(--space-6);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-inline-start: 4px solid var(--color-accent-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.calloutTag {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent-primary);
+}
+
+.calloutText {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.calloutMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-top: auto;
+}
+
+/* --------------------------------------------------------------------------
+   3. Methodology Pipeline (4 Stages)
+   -------------------------------------------------------------------------- */
+.methodologySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.pipelineList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pipelineStage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  position: relative;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+.pipelineStage:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 768px) {
+  .pipelineStage {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: start;
+    gap: var(--space-6);
+  }
+}
+
+.stageNumberBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-accent-primary);
+  font-family: var(--font-heading);
+}
+
+.stageContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stageTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.stageTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.stageSubtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+.stageDesc {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin: 0;
+  max-inline-size: 72ch;
+}
+
+.stageTagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.stageTag {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-3);
+  padding-block: 2px;
+  background-color: var(--color-bg-canvas);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   4. Integrity Charter Section
+   -------------------------------------------------------------------------- */
+.charterSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.charterGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 800px) {
+  .charterGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.charterItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.charterNumberTag {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-accent-primary);
+}
+
+.charterTitle {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--leading-snug);
+}
+
+.charterPrinciple {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent-primary);
+  margin: 0;
+}
+
+.charterGuarantee {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Operational Metrics Ledger
+   -------------------------------------------------------------------------- */
+.metricsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  background-color: var(--color-bg-canvas);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.metricBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.metricValue {
+  font-family: var(--font-heading);
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  color: var(--color-accent-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.metricLabel {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.metricCaption {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   6. Expanded Professional Team Dossiers (World-Class Redesign)
+   -------------------------------------------------------------------------- */
+.teamSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.teamHeaderArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-inline-size: 72ch;
+}
+
+.teamDossierList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.memberDossier {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease, border-color var(--duration-fast) ease;
+}
+
+@media (min-width: 768px) {
+  .memberDossier {
+    padding: var(--space-8);
+    gap: var(--space-7);
+  }
+}
+
+.memberDossier:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  border-color: var(--color-border-strong);
+}
+
+/* 5 Distinct Thematic Styles per Member */
+.memberDossierEmerald {
+  border-block-start: 4px solid #10b981;
+  background: radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%), var(--color-bg-elevated);
+}
+
+.memberDossierTerracotta {
+  border-block-start: 4px solid #f59e0b;
+  background: radial-gradient(circle at 100% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 50%), var(--color-bg-elevated);
+}
+
+.memberDossierTeal {
+  border-block-start: 4px solid #38bdf8;
+  background: radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 50%), var(--color-bg-elevated);
+}
+
+.memberDossierOlive {
+  border-block-start: 4px solid #84cc16;
+  background: radial-gradient(circle at 100% 0%, rgba(132, 204, 22, 0.08) 0%, transparent 50%), var(--color-bg-elevated);
+}
+
+.memberDossierClay {
+  border-block-start: 4px solid #f43f5e;
+  background: radial-gradient(circle at 100% 0%, rgba(244, 63, 94, 0.08) 0%, transparent 50%), var(--color-bg-elevated);
+}
+
+/* Institutional Metadata Tag Strip */
+.memberMetaStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid var(--color-border-hairline);
+}
+
+.memberMetaLeft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.memberCodePill {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-2);
+  padding-block: 2px;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-xs);
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.memberDeptBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline: var(--space-3);
+  padding-block: 3px;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.memberStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+}
+
+.statusLiveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+/* Primary Identity Block */
+.memberIdentityRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 600px) {
+  .memberIdentityRow {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-5);
+  }
+}
+
+.memberAvatarMedallion {
+  flex-shrink: 0;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.avatarInitial {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.avatarIconBadge {
+  position: absolute;
+  inset-inline-end: -4px;
+  inset-block-end: -4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--color-bg-elevated);
+  border: 2px solid var(--color-border-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.emblemEmerald {
+  background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+}
+
+.emblemTerracotta {
+  background: linear-gradient(135deg, #78350f 0%, #f59e0b 100%);
+}
+
+.emblemTeal {
+  background: linear-gradient(135deg, #0c4a6e 0%, #38bdf8 100%);
+}
+
+.emblemOlive {
+  background: linear-gradient(135deg, #365314 0%, #84cc16 100%);
+}
+
+.emblemClay {
+  background: linear-gradient(135deg, #881337 0%, #f43f5e 100%);
+}
+
+.memberNameBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.memberName {
+  font-family: var(--font-heading);
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--leading-tight);
+}
+
+.memberRole {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-accent-primary);
+  margin: 0;
+}
+
+.memberDeptSubtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+/* Core Mission Quote Box */
+.missionCard {
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-inline-start: 4px solid var(--color-accent-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.missionLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-accent-primary);
+}
+
+.missionText {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Dedicated Illustration Area */
+.illustrationSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-block: var(--space-1);
+}
+
+.illustrationMetaBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.illustrationTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.01em;
+}
+
+.illustrationCaption {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+/* 3-Step Actionable Workflow Section */
+.workflowSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.workflowSectionHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-accent-primary);
+}
+
+.workflowGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .workflowGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+.workflowCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--space-4);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--duration-fast) ease, transform var(--duration-fast) ease;
+}
+
+.workflowCard:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+
+.workflowCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.workflowStepNumber {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-accent-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+}
+
+.workflowTag {
+  font-size: 10px;
+  font-weight: 700;
+  padding-inline: 6px;
+  padding-block: 2px;
+  background-color: var(--color-bg-canvas);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 3px;
+  color: var(--color-text-secondary);
+}
+
+.workflowTitle {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--leading-snug);
+}
+
+.workflowDesc {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Card Motto Footer */
+.mottoFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border-hairline);
+  font-size: var(--text-xs);
+}
+
+.mottoLabel {
+  font-weight: 700;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.mottoText {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   7. Shopper FAQ Section
+   -------------------------------------------------------------------------- */
+.faqSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.faqItem {
+  padding: var(--space-6);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.faqQuestion {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.faqQuestionIcon {
+  color: var(--color-accent-primary);
+  flex-shrink: 0;
+}
+
+.faqAnswer {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.75;
+  margin: 0;
+  padding-inline-start: calc(var(--space-4) + 16px);
+}
+
+/* --------------------------------------------------------------------------
+   8. Direct Human Support & Contact Strip
+   -------------------------------------------------------------------------- */
+.contactStrip {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.contactIntro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-inline-size: 68ch;
+}
+
+.contactTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.contactDescription {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.contactChannelsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.channelPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  padding-inline: var(--space-5);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: all var(--duration-fast) ease;
+}
+
+.channelPill:hover {
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+  transform: translateY(-1px);
+}
+
+.channelPillAccent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  padding-inline: var(--space-6);
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-accent);
+  border: 1px solid var(--color-accent-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--duration-fast) ease;
+}
+
+.channelPillAccent:hover {
+  background-color: var(--color-accent-hover);
+  transform: translateY(-1px);
+}
+
+.navigationActionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border-hairline);
+}
+
+.actionSecondaryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent-primary);
+  text-decoration: none;
+}
+
+.actionSecondaryLink:hover {
+  text-decoration: underline;
+}

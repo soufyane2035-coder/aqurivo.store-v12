@@ -1,0 +1,12 @@
+node_modules/
+.next/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Local sync data and tmp files
+.*-data.json
+*.db.json
+/tmp/*
