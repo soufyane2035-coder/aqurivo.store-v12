@@ -23,42 +23,61 @@ import {
 
 const createMockProduct = (overrides: Partial<Product> = {}): Product => {
   const id = overrides.id || 'prod-1';
+  const cleanOverrides = Object.fromEntries(
+    Object.entries(overrides).filter(([_, v]) => v !== undefined)
+  );
   return {
     id,
-    slug: overrides.slug || id,
-    title: overrides.title || { ar: 'منتج تجريبي ممتاز', en: 'Premium Test Product' },
-    name: overrides.name || { ar: 'منتج تجريبي ممتاز', en: 'Premium Test Product' },
-    categorySlug: overrides.categorySlug || 'electronics',
-    sourceSlug: overrides.sourceSlug || 'amazon',
-    priceAmount: overrides.priceAmount ?? 100,
-    priceCurrency: 'USD',
-    images: overrides.images || [
-      { url: 'https://images.example.com/p1.jpg', alt: 'Test Photo 1' },
-      { url: 'https://images.example.com/p2.jpg', alt: 'Test Photo 2' },
-      { url: 'https://images.example.com/p3.jpg', alt: 'Test Photo 3' },
-    ],
-    whyWePickedIt: overrides.whyWePickedIt || {
+    slug: id,
+    title: { ar: 'منتج تجريبي ممتاز', en: 'Premium Test Product' },
+    name: { ar: 'منتج تجريبي ممتاز', en: 'Premium Test Product' },
+    shortSummary: { ar: 'ملخص قصير تجريبي', en: 'Short test summary' },
+    whyWePickedIt: {
       ar: 'اخترنا هذا المنتج لكفاءته العالية وتصميمه المتقن وسعره العادل.',
       en: 'Selected for superior performance, balanced ergonomics and value.',
     },
-    whatToConsider: overrides.whatToConsider || {
+    whatToConsider: {
       ar: 'يرجى مراعاة أبعاد الجهاز والتوافق مع منافذ مكتبك.',
       en: 'Check desktop dimensions and port compatibility.',
     },
-    specs: overrides.specs || [
+    description: { ar: 'وصف تجريبي', en: 'Test description' },
+    priceAmount: 100,
+    priceCurrency: 'USD',
+    priceDisplayPolicy: 'show_with_timestamp',
+    priceUpdatedAt: new Date().toISOString(),
+    images: [
+      { url: 'https://images.example.com/p1.jpg', alt: { ar: 'صورة 1', en: 'Test Photo 1' }, width: 800, height: 800 },
+      { url: 'https://images.example.com/p2.jpg', alt: { ar: 'صورة 2', en: 'Test Photo 2' }, width: 800, height: 800 },
+      { url: 'https://images.example.com/p3.jpg', alt: { ar: 'صورة 3', en: 'Test Photo 3' }, width: 800, height: 800 },
+    ],
+    affiliateUrl: 'https://example.com/buy',
+    sourceId: 'src-1',
+    sourceSlug: 'amazon',
+    sourceName: { ar: 'أمازون', en: 'Amazon' },
+    sourceDisclosure: { ar: 'إفصاح الشريك', en: 'Affiliate disclosure' },
+    categoryId: 'cat-1',
+    categorySlug: 'electronics',
+    categoryName: { ar: 'إلكترونيات', en: 'Electronics' },
+    tags: ['test'],
+    isFeatured: true,
+    status: 'published',
+    clicksCount: 10,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    specs: [
       { label: 'القدرة', value: '100W' },
       { label: 'الوزن', value: '250g' },
       { label: 'المنافذ', value: '3x USB-C' },
     ],
-    pros: overrides.pros || ['ميزة أولى موثقة', 'ميزة ثانية موثقة'],
-    cons: overrides.cons || ['نقطة انتباه أولى موثقة'],
-    comparisonDna: overrides.comparisonDna || {
+    pros: ['ميزة أولى موثقة', 'ميزة ثانية موثقة'],
+    cons: ['نقطة انتباه أولى موثقة'],
+    comparisonDna: {
       keySpecs: {
         ar: ['قدرة 100 واط', 'منفذ USB-C'],
         en: ['100W Power', 'USB-C Port'],
       },
     },
-    ...overrides,
+    ...cleanOverrides,
   };
 };
 
@@ -160,9 +179,8 @@ describe('Phase 4: Unified Multi-Objective Ranking Formulation', () => {
   it('does not invent fake star ratings or reviews when absent', () => {
     const productWithoutRating = createMockProduct({
       rating: undefined,
-      ratingValue: undefined,
       stars: undefined,
-      reviewsCount: 0,
+      reviewCount: 0,
     });
 
     // Must return null, not an arbitrary 4.3 or 4.5
@@ -177,7 +195,7 @@ describe('Phase 4: Unified Multi-Objective Ranking Formulation', () => {
   it('verifies ratings only when documented and backed by authentic reviews', () => {
     const productWithRating = createMockProduct({
       rating: 4.6,
-      reviewsCount: 250,
+      reviewCount: 250,
     });
 
     const verified = getVerifiedProductRating(productWithRating);
@@ -286,7 +304,7 @@ describe('Phase 4: Deduplication and Diversity', () => {
         name: { ar: 'منتج متكامل موثق بالمواصفات', en: 'Complete Verified Product with Specs' },
         pros: ['ميزة 1', 'ميزة 2'],
         cons: ['نقطة 1'],
-        comparisonDna: { keySpecs: { ar: ['مواصفة 1', 'مواصفة 2', 'مواصفة 3'] } },
+        comparisonDna: { keySpecs: { ar: ['مواصفة 1', 'مواصفة 2', 'مواصفة 3'], en: ['Spec 1', 'Spec 2', 'Spec 3'] } },
         priceAmount: 99,
       }),
     ];
