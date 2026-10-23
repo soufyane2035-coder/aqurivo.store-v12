@@ -1280,19 +1280,24 @@ export function AdminSettingsView({
       </form>
 
       {/* Domain Email Anti-Spoofing (SPF & DMARC) + Security Headers Verification */}
-      <section className={styles.card}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>
-              {isAr
-                ? 'حماية النطاق من انتحال البريد (SPF & DMARC) وترويسات الأمان'
-                : 'Domain Email Anti-Spoofing (SPF & DMARC) & Security Headers'}
-            </h2>
-            <p className={styles.pageSubtitle}>
-              {isAr
-                ? 'أضف سجلات TXT التالية في لوحة تحكم DNS الخاصة بنطاق aqurivo.store لمنع أي جهة من إرسال بريد مزيف باسم موقعك.'
-                : 'Add these TXT records in your DNS provider for aqurivo.store to prevent email spoofing.'}
-            </p>
+      <section className={`${styles.card} ${styles.dnsSection}`}>
+        <div className={styles.dnsHeader}>
+          <div className={styles.dnsIntro}>
+            <span className={styles.dnsIcon} aria-hidden="true">
+              <ShieldAlert size={19} />
+            </span>
+            <div>
+              <h2 className={styles.dnsTitle}>
+                {isAr
+                  ? 'حماية النطاق من انتحال البريد (SPF & DMARC) وترويسات الأمان'
+                  : 'Domain Email Anti-Spoofing (SPF & DMARC) & Security Headers'}
+              </h2>
+              <p className={styles.pageSubtitle}>
+                {isAr
+                  ? 'أضف سجلات TXT التالية في لوحة تحكم DNS الخاصة بنطاق aqurivo.store لمنع أي جهة من إرسال بريد مزيف باسم موقعك.'
+                  : 'Add these TXT records in your DNS provider for aqurivo.store to prevent email spoofing.'}
+              </p>
+            </div>
           </div>
           <Button
             type="button"
@@ -1306,12 +1311,17 @@ export function AdminSettingsView({
         </div>
 
         {dnsStatus.checked && (
-          <div className={styles.alertBanner} role="status">
+          <div
+            className={`${styles.alertBanner} ${styles.dnsStatus}`}
+            role="status"
+          >
             <strong>
-              {isAr ? 'نتيجة الفحص المباشر لنطاق aqurivo.store:' : 'Live DNS Check Result for aqurivo.store:'}
+              {isAr
+                ? 'نتيجة الفحص المباشر لنطاق aqurivo.store:'
+                : 'Live DNS Check Result for aqurivo.store:'}
             </strong>
             <p>
-              • <strong>SPF (`aqurivo.store`):</strong>{' '}
+              • <strong>SPF (aqurivo.store):</strong>{' '}
               {dnsStatus.spfFound
                 ? `${isAr ? 'مفعّل بنجاح' : 'Published'} (${dnsStatus.spfValue})`
                 : isAr
@@ -1319,7 +1329,7 @@ export function AdminSettingsView({
                   : 'Not published in DNS yet — copy Record 1 below into your DNS panel.'}
             </p>
             <p>
-              • <strong>DMARC (`_dmarc.aqurivo.store`):</strong>{' '}
+              • <strong>DMARC (_dmarc.aqurivo.store):</strong>{' '}
               {dnsStatus.dmarcFound
                 ? `${isAr ? 'مفعّل بنجاح' : 'Published'} (${dnsStatus.dmarcValue})`
                 : isAr
@@ -1329,16 +1339,26 @@ export function AdminSettingsView({
           </div>
         )}
 
-        <div className={styles.mobileAdminCards} style={{ display: 'flex' }}>
-          <div className={styles.mobileAdminCard}>
-            <div className={styles.mobileAdminCardHeader}>
-              <div>
-                <h3 className={styles.mobileAdminCardTitle}>
-                  {isAr ? '1. سجل SPF (منع إرسال بريد مزيف باسم النطاق)' : '1. SPF Record (Prevent Spoofing)'}
-                </h3>
-                <p className={styles.mobileAdminCardSub}>
-                  Type: <strong>TXT</strong> | Host / Name: <strong>@</strong> (aqurivo.store)
-                </p>
+        <div className={styles.dnsRecords}>
+          <article className={styles.dnsRecordCard}>
+            <div className={styles.dnsRecordHeader}>
+              <div className={styles.dnsRecordInfo}>
+                <span className={styles.dnsRecordNumber}>01</span>
+                <div>
+                  <h3 className={styles.dnsRecordTitle}>
+                    {isAr
+                      ? 'سجل SPF (منع إرسال بريد مزيف باسم النطاق)'
+                      : 'SPF Record (Prevent Spoofing)'}
+                  </h3>
+                  <div className={styles.dnsRecordMeta}>
+                    <span>
+                      <strong>TXT</strong> {isAr ? 'النوع' : 'Type'}
+                    </span>
+                    <span dir="ltr">
+                      <strong>@</strong> aqurivo.store
+                    </span>
+                  </div>
+                </div>
               </div>
               <Button
                 type="button"
@@ -1349,27 +1369,33 @@ export function AdminSettingsView({
                 {isAr ? 'نسخ القيمة' : 'Copy Value'}
               </Button>
             </div>
-            <div className={styles.mobileAdminCardMeta}>
-              <div className={styles.mobileAdminMetaItem}>
-                <span className={styles.mobileAdminMetaLabel}>TXT Value</span>
-                <span className={styles.mobileAdminMetaValue} dir="ltr">
-                  {spfRecordValue}
-                </span>
-              </div>
+            <div className={styles.dnsValueBlock}>
+              <span className={styles.dnsValueLabel}>TXT VALUE</span>
+              <code className={styles.dnsValue} dir="ltr">
+                {spfRecordValue}
+              </code>
             </div>
-          </div>
+          </article>
 
-          <div className={styles.mobileAdminCard}>
-            <div className={styles.mobileAdminCardHeader}>
-              <div>
-                <h3 className={styles.mobileAdminCardTitle}>
-                  {isAr
-                    ? '2. سجل DMARC — وضع المراقبة الموصى به للبدء (p=none)'
-                    : '2. DMARC Record — Observation Mode (p=none)'}
-                </h3>
-                <p className={styles.mobileAdminCardSub}>
-                  Type: <strong>TXT</strong> | Host / Name: <strong>_dmarc</strong> (_dmarc.aqurivo.store)
-                </p>
+          <article className={styles.dnsRecordCard}>
+            <div className={styles.dnsRecordHeader}>
+              <div className={styles.dnsRecordInfo}>
+                <span className={styles.dnsRecordNumber}>02</span>
+                <div>
+                  <h3 className={styles.dnsRecordTitle}>
+                    {isAr
+                      ? 'سجل DMARC — وضع المراقبة الموصى به للبدء (p=none)'
+                      : 'DMARC Record — Observation Mode (p=none)'}
+                  </h3>
+                  <div className={styles.dnsRecordMeta}>
+                    <span>
+                      <strong>TXT</strong> {isAr ? 'النوع' : 'Type'}
+                    </span>
+                    <span dir="ltr">
+                      <strong>_dmarc</strong> _dmarc.aqurivo.store
+                    </span>
+                  </div>
+                </div>
               </div>
               <Button
                 type="button"
@@ -1380,27 +1406,33 @@ export function AdminSettingsView({
                 {isAr ? 'نسخ القيمة' : 'Copy Value'}
               </Button>
             </div>
-            <div className={styles.mobileAdminCardMeta}>
-              <div className={styles.mobileAdminMetaItem}>
-                <span className={styles.mobileAdminMetaLabel}>TXT Value</span>
-                <span className={styles.mobileAdminMetaValue} dir="ltr">
-                  {dmarcObserveValue}
-                </span>
-              </div>
+            <div className={styles.dnsValueBlock}>
+              <span className={styles.dnsValueLabel}>TXT VALUE</span>
+              <code className={styles.dnsValue} dir="ltr">
+                {dmarcObserveValue}
+              </code>
             </div>
-          </div>
+          </article>
 
-          <div className={styles.mobileAdminCard}>
-            <div className={styles.mobileAdminCardHeader}>
-              <div>
-                <h3 className={styles.mobileAdminCardTitle}>
-                  {isAr
-                    ? '3. سجل DMARC — وضع الحظر الصارم (p=reject)'
-                    : '3. DMARC Record — Strict Reject Mode (p=reject)'}
-                </h3>
-                <p className={styles.mobileAdminCardSub}>
-                  Type: <strong>TXT</strong> | Host / Name: <strong>_dmarc</strong> (_dmarc.aqurivo.store)
-                </p>
+          <article className={styles.dnsRecordCard}>
+            <div className={styles.dnsRecordHeader}>
+              <div className={styles.dnsRecordInfo}>
+                <span className={styles.dnsRecordNumber}>03</span>
+                <div>
+                  <h3 className={styles.dnsRecordTitle}>
+                    {isAr
+                      ? 'سجل DMARC — وضع الحظر الصارم (p=reject)'
+                      : 'DMARC Record — Strict Reject Mode (p=reject)'}
+                  </h3>
+                  <div className={styles.dnsRecordMeta}>
+                    <span>
+                      <strong>TXT</strong> {isAr ? 'النوع' : 'Type'}
+                    </span>
+                    <span dir="ltr">
+                      <strong>_dmarc</strong> _dmarc.aqurivo.store
+                    </span>
+                  </div>
+                </div>
               </div>
               <Button
                 type="button"
@@ -1411,15 +1443,13 @@ export function AdminSettingsView({
                 {isAr ? 'نسخ القيمة' : 'Copy Value'}
               </Button>
             </div>
-            <div className={styles.mobileAdminCardMeta}>
-              <div className={styles.mobileAdminMetaItem}>
-                <span className={styles.mobileAdminMetaLabel}>TXT Value</span>
-                <span className={styles.mobileAdminMetaValue} dir="ltr">
-                  {dmarcRejectValue}
-                </span>
-              </div>
+            <div className={styles.dnsValueBlock}>
+              <span className={styles.dnsValueLabel}>TXT VALUE</span>
+              <code className={styles.dnsValue} dir="ltr">
+                {dmarcRejectValue}
+              </code>
             </div>
-          </div>
+          </article>
         </div>
       </section>
     </>

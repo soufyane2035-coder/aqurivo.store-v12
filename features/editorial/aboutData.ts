@@ -83,12 +83,12 @@ export const ABOUT_ORIGIN_DATA = {
     'How AQURIVO was founded to provide transparent, research-backed product guidance without promotional bias',
   paragraphsAr: [
     'تأسست منصة AQURIVO لتقديم مراجعات وتحليلات مستقلة للمنتجات ومساعدة المتسوقين في اتخاذ قرارات مدروسة. أصبحت التجارة الإلكترونية اليوم مليئة بالعروض المتكررة والتسعير المتقلب والمراجعات الترويجية التي تصعّب تمييز الخيارات الجيدة.',
-    'نعمل في AQURIVO كدليل تحريري يركز على التدقيق والبحث الموضوعي. نحن لا نبيع المنتجات بشكل مباشر ولا نتلقى مقابلاً مادياً من العلامات التجارية للترويج لمنتجاتها، بل نفحص المواصفات الفنية الموثقة وسجلات المشترين الفعليين على مدار فترات استخدام ممتدة، ونبرز نقاط القوة والقيود الواقعية لكل منتج.',
+    'نعمل في AQURIVO كدليل تحريري يركز على البحث الموضوعي. لا نبيع المنتجات بشكل مباشر، وقد نحصل على عمولة تسويق من المتاجر الشريكة عند الشراء عبر بعض الروابط، دون أن يؤثر ذلك في تقييماتنا أو ترتيب توصياتنا. نعتمد على المواصفات المنشورة ومراجعات المشترين المتاحة، ونوضح نقاط القوة والقيود لكل منتج.',
     'مبدأنا التحريري واضح وصريح: نوضح عيوب الاستخدام والقيود بصراحة تامة إلى جانب المزايا، ولا نتقاضى عمولات ترويجية لتغيير ترتيب التوصيات، ونوجه المتسوق حصرياً إلى صفحات المتاجر الرسمية المعتمدة للشراء الآمن والشفاف.',
   ],
   paragraphsEn: [
     'AQURIVO was established to bring clarity and independent evaluation to online consumer purchases. Navigating digital marketplaces often involves sifting through repetitive product listings, shifting prices, and promotional bias.',
-    'We built AQURIVO as a focused, human-curated editorial resource. Rather than selling inventory directly or accepting sponsored placements, we research products across vetted global marketplaces including Amazon, evaluate published technical specifications against long-term buyer feedback, and present both benefits and genuine limitations clearly.',
+    'We built AQURIVO as a focused, human-curated editorial resource. We do not sell products directly, and we may earn affiliate commissions from partner stores when readers purchase through some links. These commissions do not influence our assessments or recommendation rankings. Our research uses published specifications and available buyer reviews, and clearly presents product benefits and limitations.',
     'Our editorial standards are straightforward: we document practical drawbacks alongside highlights, never accept payment from manufacturers to influence our assessments, and direct shoppers straight to verified official merchant pages.',
   ],
 };
@@ -153,8 +153,8 @@ export const INTEGRITY_CHARTER_DATA: IntegrityCharterItem[] = [
     number: '01',
     titleAr: 'صفر رعاية أو مدفوعات من الشركات',
     titleEn: 'Zero Paid Corporate Endorsements',
-    principleAr: 'لا نبيع تقييماتنا أو نتقاضى مقابلاً لمدح أي علامة تجارية',
-    principleEn: 'We never sell editorial ratings or accept fees to promote brands',
+    principleAr: 'لا نبيع تقييماتنا أو نسمح للعمولات بتغيير ترتيب توصياتنا',
+    principleEn: 'We never sell ratings or let commissions change our rankings',
     guaranteeAr:
       'كل منتج يظهر في AQURIVO اختاره فريقنا بناءً على جدارته وقيمته للمتسوق فقط. لا يمكن لأي شركة مصنعة دفع مال لتغيير حكمنا أو حجز موقع مميز.',
     guaranteeEn:
@@ -566,9 +566,9 @@ export const ABOUT_FAQS_DATA: AboutFaqItem[] = [
     questionAr: 'هل تدفع لكم الشركات المصنعة أموالاً مقابل تقييم إيجابي لمنتجاتها؟',
     questionEn: 'Do manufacturers pay you for positive product evaluations?',
     answerAr:
-      'قطعاً لا. سياستنا التحريرية صارمة وترفض تماماً قبول أي أموال، هدايا، أو رعاية مدفوعة من أي مصنع أو بائع. استقلاليتنا هي رأس مالنا، ونحن ننبه المتسوق لعيوب المنتج قبل ذكر مزاياه.',
+      'لا نقبل أموالاً أو هدايا أو رعاية مدفوعة مقابل تقييم إيجابي أو للتأثير في ترتيب التوصيات. وقد نحصل على عمولة تسويق من المتاجر الشريكة عند الشراء عبر بعض روابطنا، دون أن تؤثر في تقييماتنا. ونوضح ذلك في إفصاح الشراكة.',
     answerEn:
-      'Strictly no. Our editorial policy strictly forbids receiving fees, gifts, or paid sponsorships from manufacturers or sellers. Our independence is sacred, and we document flaws before highlighting benefits.',
+      'We do not accept fees, gifts, or paid sponsorships in exchange for positive reviews or to influence recommendation rankings. We may earn affiliate commissions when readers buy through some partner links; these do not affect our assessments, and we disclose them.',
   },
   {
     questionAr: 'هل يترتب عليّ أي دفع مالي إضافي عند الشراء عبر روابطكم؟',

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -13,12 +13,14 @@ import {
   Globe,
   Inbox,
   LayoutDashboard,
+  Menu,
   Moon,
   Package,
   Settings,
   Store,
   Sun,
   Users,
+  X,
 } from 'lucide-react';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/components/ui/ThemeProvider';
@@ -47,10 +49,17 @@ export function AdminShell({
   const { theme, toggleTheme } = useTheme();
   const { user, authLoading } = useSaved();
   const isAr = locale === 'ar';
+  const sidebarRef = useRef<HTMLElement>(null);
+  const mobileNavToggleRef = useRef<HTMLButtonElement>(null);
+  const closeMobileNavigation = () => {
+    setMobileNavOpen(false);
+    mobileNavToggleRef.current?.focus();
+  };
 
   const [newReportsCount, setNewReportsCount] = useState<number>(
     initialNewReportsCount
   );
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     setNewReportsCount(initialNewReportsCount);
@@ -68,6 +77,49 @@ export function AdminShell({
       window.removeEventListener('aqurivo-reports-count', handleReportsCount);
     };
   }, []);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeMobileNavigation();
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        const focusable = sidebarRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled])'
+        );
+        if (!focusable?.length) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+    sidebarRef.current
+      ?.querySelector<HTMLElement>('.' + styles.navLinkActive)
+      ?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileNavOpen]);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   const effectiveEmail = adminEmail || (user?.role === 'admin' ? user.email : '');
 
@@ -159,8 +211,22 @@ export function AdminShell({
 
   return (
     <div className={styles.adminLayout}>
+      {mobileNavOpen && (
+        <button
+          type="button"
+          className={styles.mobileNavBackdrop}
+          onClick={closeMobileNavigation}
+          aria-label={isAr ? 'إغلاق قائمة الإدارة' : 'Close admin navigation'}
+        />
+      )}
+
       {/* Operational Sidebar */}
-      <aside className={styles.sidebar}>
+      <aside
+        ref={sidebarRef}
+        className={`${styles.sidebar} ${mobileNavOpen ? styles.sidebarOpen : ''}`}
+        id="admin-navigation"
+        aria-label={isAr ? 'قائمة الإدارة' : 'Admin navigation'}
+      >
         <div className={styles.sidebarBrand}>
           <div className={styles.brandGroup}>
             <BrandLogo size="sm" />
@@ -168,17 +234,31 @@ export function AdminShell({
               {isAr ? 'الإدارة' : 'Admin'}
             </span>
           </div>
-          <Link href="/" className={styles.backToSiteTopBtn}>
-            {isAr ? (
-              <ArrowRight size={15} aria-hidden="true" />
-            ) : (
-              <ArrowLeft size={15} aria-hidden="true" />
-            )}
-            <span>{isAr ? 'الرجوع للموقع' : 'Back to Site'}</span>
-          </Link>
+          <div className={styles.sidebarBrandActions}>
+            <Link href="/" className={styles.backToSiteTopBtn}>
+              {isAr ? (
+                <ArrowRight size={15} aria-hidden="true" />
+              ) : (
+                <ArrowLeft size={15} aria-hidden="true" />
+              )}
+              <span>{isAr ? 'الرجوع للموقع' : 'Back to Site'}</span>
+            </Link>
+            <button
+              ref={mobileNavToggleRef}
+              type="button"
+              className={styles.mobileNavClose}
+              onClick={closeMobileNavigation}
+              aria-label={isAr ? 'إغلاق القائمة' : 'Close navigation'}
+            >
+              <X size={19} aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
-        <nav className={styles.navMenu} aria-label="Admin Navigation">
+        <nav
+          className={styles.navMenu}
+          aria-label={isAr ? 'أقسام الإدارة' : 'Admin sections'}
+        >
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = item.exact
@@ -189,6 +269,8 @@ export function AdminShell({
                 key={item.href}
                 href={item.href}
                 className={`${styles.navLink} ${active ? styles.navLinkActive : ''}`}
+                aria-current={active ? 'page' : undefined}
+                onClick={closeMobileNavigation}
               >
                 <Icon size={17} aria-hidden="true" />
                 <span>{item.label}</span>
@@ -249,6 +331,17 @@ export function AdminShell({
       {/* Main Content Area */}
       <div className={styles.workspace}>
         <header className={styles.topBar}>
+          <button
+            type="button"
+            className={styles.mobileNavToggle}
+            onClick={() => setMobileNavOpen(true)}
+            aria-expanded={mobileNavOpen}
+            aria-controls="admin-navigation"
+            aria-label={isAr ? 'فتح قائمة الإدارة' : 'Open admin navigation'}
+          >
+            <Menu size={20} aria-hidden="true" />
+          </button>
+
           <div className={styles.adminIdentity}>
             <span className={styles.identityLabel}>
               {isAr ? 'المدير المسجل:' : 'Signed in as:'}

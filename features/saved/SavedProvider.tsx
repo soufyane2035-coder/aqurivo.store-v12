@@ -327,9 +327,7 @@ export function SavedProvider({ children }: { children: React.ReactNode }) {
         // Ignore storage write errors
       }
 
-      if (!exists) {
-        recordVisitorInteraction({ productId, action: 'save' });
-      }
+      recordVisitorInteraction({ productId, action: exists ? 'unsave' : 'save' });
 
       showToast(
         exists ? messages.product.removedToast : messages.product.savedToast,

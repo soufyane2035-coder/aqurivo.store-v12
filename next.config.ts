@@ -38,7 +38,10 @@ const previewCspHeader = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  devIndicators: false,
+  devIndicators: {
+    buildActivity: false,
+    appIsrStatus: false,
+  },
   env: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://aqurivo.store',
     NEXT_PUBLIC_SITE_URL_COM: process.env.NEXT_PUBLIC_SITE_URL_COM || 'https://aqurivo.com',

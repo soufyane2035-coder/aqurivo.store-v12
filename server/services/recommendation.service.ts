@@ -610,13 +610,61 @@ export function getSmartGuideProducts(
     addGuideTokens(article.excerpt.en, 3.0);
   }
 
+  if (article.seoTitle) {
+    addGuideTokens(
+      typeof article.seoTitle === 'string'
+        ? article.seoTitle
+        : `${article.seoTitle.ar || ''} ${article.seoTitle.en || ''}`,
+      4.5
+    );
+  }
+  if (article.seoDescription) {
+    addGuideTokens(
+      typeof article.seoDescription === 'string'
+        ? article.seoDescription
+        : `${article.seoDescription.ar || ''} ${article.seoDescription.en || ''}`,
+      2.5
+    );
+  }
+  if (article.editorVerdict) {
+    addGuideTokens(
+      typeof article.editorVerdict === 'string'
+        ? article.editorVerdict
+        : `${article.editorVerdict.ar || ''} ${article.editorVerdict.en || ''}`,
+      3.5
+    );
+  }
+  if (Array.isArray(article.faqItems)) {
+    for (const faq of article.faqItems) {
+      addGuideTokens(
+        `${faq.question?.ar || ''} ${faq.question?.en || ''}`,
+        2.5
+      );
+      addGuideTokens(
+        `${faq.answer?.ar || ''} ${faq.answer?.en || ''}`,
+        1.5
+      );
+    }
+  }
+
+  const articleBodyText = `${article.contentHtml?.ar || ''} ${article.contentHtml?.en || ''}`
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .slice(0, 12000);
+  addGuideTokens(articleBodyText, 1.5);
+
   if (article.categorySlug) {
     addGuideTokens(article.categorySlug.replace(/-/g, ' '), 2.5);
   }
 
   // 3. Score candidate products against the guide
   const candidates = allCatalogProducts
-    .filter((p) => !selectedIds.has(p.id) && !selectedIds.has(p.slug))
+    .filter(
+      (p) =>
+        !selectedIds.has(p.id) &&
+        !selectedIds.has(p.slug) &&
+        p.inStock !== false
+    )
     .map((candidate) => {
       const candArch = detectProductArchetype(candidate);
       const isExactArch = guideArchetype !== 'general' && candArch === guideArchetype;
@@ -629,14 +677,33 @@ export function getSmartGuideProducts(
       let score = 0;
 
       if (isExactArch) {
-        score = 65 + (cosineSim * 25);
+        score = 55 + (cosineSim * 30);
       } else if (isSubArch) {
-        score = 52 + (cosineSim * 25);
+        score = 42 + (cosineSim * 30);
       } else if (isCompArch) {
-        score = 38 + (cosineSim * 20);
+        score = 25 + (cosineSim * 20);
       } else {
         // Disparate archetype: only qualifies if it has high semantic cosine overlap
         score = cosineSim * 60;
+      }
+
+      const candidateCategory = (
+        candidate.categorySlug ||
+        candidate.categoryId ||
+        ''
+      ).toLowerCase();
+      const guideCategory = (
+        article.categorySlug ||
+        article.categoryId ||
+        ''
+      ).toLowerCase();
+      if (candidateCategory && guideCategory && candidateCategory === guideCategory) {
+        score += 12;
+      } else if (
+        guideCategory &&
+        COMPLEMENTARY_CATEGORY_MATRIX[guideCategory]?.includes(candidateCategory)
+      ) {
+        score += 5;
       }
 
       // Bonus for real product photos
@@ -648,11 +715,10 @@ export function getSmartGuideProducts(
       const verifiedRating = getVerifiedProductRating(candidate);
       const dataQuality = computeProductDataQualityScore(candidate);
       if (verifiedRating !== null) {
-        score += Math.min(5, (verifiedRating - 3.5) * 3);
+        score += Math.max(0, Math.min(5, (verifiedRating - 3.5) * 3));
       } else {
         score += Math.min(5, (dataQuality / 100) * 4);
       }
-
       return {
         product: candidate,
         score: Math.round(score * 10) / 10,

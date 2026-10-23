@@ -2,17 +2,22 @@
 
 import React, { useState } from 'react';
 import styles from './ProductPage.module.css';
+import { recordVisitorInteraction } from '@/lib/productSearch';
 
 interface BuyNowButtonProps {
   href: string;
   label: string;
   variant?: 'primary' | 'sticky';
+  productId: string;
+  categorySlug: string;
 }
 
 export function BuyNowButton({
   href,
   label,
   variant = 'primary',
+  productId,
+  categorySlug,
 }: BuyNowButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
 
@@ -21,6 +26,14 @@ export function BuyNowButton({
     window.setTimeout(() => {
       setIsPressed(false);
     }, 280);
+  };
+
+  const recordPurchaseIntent = () => {
+    recordVisitorInteraction({
+      productId,
+      categorySlug,
+      action: 'outbound',
+    });
   };
 
   const baseClass =
@@ -36,9 +49,12 @@ export function BuyNowButton({
       target="_blank"
       rel="sponsored noopener noreferrer"
       className={`${baseClass} ${isPressed ? pressedClass : ''}`}
+      onClick={() => {
+        triggerPressFeedback();
+        recordPurchaseIntent();
+      }}
       onMouseDown={triggerPressFeedback}
       onTouchStart={triggerPressFeedback}
-      onClick={triggerPressFeedback}
     >
       <span>{label}</span>
     </a>

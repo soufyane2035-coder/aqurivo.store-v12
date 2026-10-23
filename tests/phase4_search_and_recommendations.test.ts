@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import type { Product } from '../types';
+import type { Article, Product } from '../types';
 import {
   normalizeSearchText,
   stripArabicPrefixes,
@@ -12,12 +12,16 @@ import {
   computeProductDataQualityScore,
   getVerifiedProductRating,
   computeUnifiedRankingScore,
+  computeExplicitIntentBoost,
   searchAndRankProducts,
   isNewVisitor,
   COMPLEMENTARY_CATEGORY_MATRIX,
+  getOrInitVisitorProfile,
+  recordVisitorInteraction,
 } from '../lib/productSearch';
 import {
   computeProductItemAffinity,
+  getSmartGuideProducts,
   getSmartRecommendations,
 } from '../server/services/recommendation.service';
 
@@ -79,7 +83,31 @@ const createMockProduct = (overrides: Partial<Product> = {}): Product => {
     },
     ...cleanOverrides,
   };
+
 };
+
+const createMockArticle = (overrides: Partial<Article> = {}): Article => ({
+  id: 'guide-1',
+  slug: 'best-coffee-grinder',
+  title: { ar: 'أفضل مطحنة قهوة للإسبريسو', en: 'Best Coffee Grinder for Espresso' },
+  excerpt: {
+    ar: 'دليل لاختيار مطحنة قهوة مناسبة للإسبريسو.',
+    en: 'A guide to choosing a coffee grinder for espresso.',
+  },
+  contentHtml: {
+    ar: '<p>نقارن المطاحن من حيث الطحن المتجانس وإعدادات الإسبريسو.</p>',
+    en: '<p>Compare grinders for consistent espresso grind and adjustment range.</p>',
+  },
+  categoryId: 'coffee-grinders',
+  categorySlug: 'coffee-grinders',
+  categoryName: { ar: 'مطاحن القهوة', en: 'Coffee Grinders' },
+  relatedProductIds: [],
+  readingTimeMinutes: 6,
+  status: 'published',
+  publishedAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  ...overrides,
+});
 
 describe('Phase 4: Arabic and English Search, Normalization & Stemming', () => {
   it('normalizes Arabic text: diacritics, alef forms, hamza, and ta marbuta', () => {
@@ -153,6 +181,126 @@ describe('Phase 4: Arabic and English Search, Normalization & Stemming', () => {
 });
 
 describe('Phase 4: Unified Multi-Objective Ranking Formulation', () => {
+  it('matches buying-guide recommendations to guide intent and excludes unrelated catalog items', () => {
+    const guide = createMockArticle({
+      topPickProductId: 'editor-choice',
+      relatedProductIds: ['editor-choice'],
+      editorVerdict: {
+        ar: 'اختيار المحرر لطحن متجانس للإسبريسو.',
+        en: 'Editors pick for consistent espresso grinding.',
+      },
+      faqItems: [
+        {
+          question: {
+            ar: 'ما مطحنة القهوة المناسبة للإسبريسو؟',
+            en: 'Which coffee grinder is suitable for espresso?',
+          },
+          answer: {
+            ar: 'مطحنة توفر إعدادات طحن دقيقة.',
+            en: 'A grinder with fine adjustment settings.',
+          },
+        },
+      ],
+    });
+    const editorPick = createMockProduct({
+      id: 'editor-choice',
+      slug: 'editor-choice',
+      title: { ar: 'مطحنة قهوة يدوية', en: 'Manual Coffee Grinder' },
+      categoryId: 'coffee-grinders',
+      categorySlug: 'coffee-grinders',
+    });
+    const relevantAlternative = createMockProduct({
+      id: 'espresso-grinder',
+      slug: 'espresso-grinder',
+      title: {
+        ar: 'مطحنة قهوة كهربائية للإسبريسو',
+        en: 'Electric Burr Coffee Grinder for Espresso',
+      },
+      categoryId: 'coffee-grinders',
+      categorySlug: 'coffee-grinders',
+      tags: ['burr grinder', 'espresso'],
+    });
+    const unrelatedProduct = createMockProduct({
+      id: 'air-fryer',
+      slug: 'air-fryer',
+      title: { ar: 'قلاية هوائية', en: 'Air Fryer' },
+      categoryId: 'kitchen-appliances',
+      categorySlug: 'kitchen-appliances',
+      tags: ['air fryer'],
+    });
+    const outOfStockGrinder = createMockProduct({
+      id: 'out-of-stock-grinder',
+      slug: 'out-of-stock-grinder',
+      title: { ar: 'مطحنة قهوة للإسبريسو', en: 'Espresso Coffee Grinder' },
+      categoryId: 'coffee-grinders',
+      categorySlug: 'coffee-grinders',
+      inStock: false,
+    });
+
+    const recommended = getSmartGuideProducts(
+      guide,
+      [unrelatedProduct, outOfStockGrinder, relevantAlternative, editorPick],
+      4
+    );
+
+    assert.strictEqual(recommended[0].id, 'editor-choice');
+    assert.ok(
+      recommended.some((product) => product.id === 'espresso-grinder'),
+      'Guide intent from its body and FAQ should surface a relevant alternative'
+    );
+    assert.ok(
+      !recommended.some((product) => product.id === 'air-fryer'),
+      'Unrelated catalog products should not pad a buying guide'
+    );
+    assert.ok(
+      !recommended.some((product) => product.id === 'out-of-stock-grinder'),
+      'Unavailable products should not be selected as automatic recommendations'
+    );
+  });
+
+  it('persists saves and outbound clicks as distinct local intent signals', () => {
+    const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+    const storage = new Map<string, string>();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        localStorage: {
+          getItem: (key: string) => storage.get(key) ?? null,
+          setItem: (key: string, value: string) => storage.set(key, value),
+        },
+      },
+    });
+
+    try {
+      recordVisitorInteraction({
+        productId: 'product-1',
+        action: 'save',
+      });
+      recordVisitorInteraction({
+        productId: 'product-2',
+        categorySlug: 'electronics',
+        action: 'outbound',
+      });
+      recordVisitorInteraction({
+        productId: 'product-1',
+        action: 'unsave',
+      });
+
+      const profile = getOrInitVisitorProfile();
+      assert.deepStrictEqual(profile.savedProductIds, []);
+      assert.deepStrictEqual(profile.outboundClickedProductIds, ['product-2']);
+      assert.ok(profile.outboundClickTimestamps['product-2'] > 0);
+      assert.deepStrictEqual(profile.viewedProductIds, ['product-2']);
+      assert.deepStrictEqual(profile.categories, ['electronics']);
+    } finally {
+      if (originalWindow) {
+        Object.defineProperty(globalThis, 'window', originalWindow);
+      } else {
+        Reflect.deleteProperty(globalThis, 'window');
+      }
+    }
+  });
+
   it('combines relevance, category, price, engagement, and data quality into composite score', () => {
     const product = createMockProduct({
       priceAmount: 89,
@@ -223,6 +371,53 @@ describe('Phase 4: Unified Multi-Objective Ranking Formulation', () => {
     assert.ok(affinity.score >= 40, 'Cross-category complementary score should be strong');
     assert.ok(affinity.isComplement, 'Should be flagged as complementary companion');
   });
+
+  it('weights outbound purchase intent more strongly than saves and related-item similarity', () => {
+    const intentProduct = createMockProduct({
+      id: 'intent-product',
+      slug: 'intent-product',
+      categorySlug: 'electronics',
+    });
+    const relatedProduct = createMockProduct({
+      id: 'related-product',
+      slug: 'related-product',
+      categorySlug: 'electronics',
+    });
+
+    const savedDirectBoost = computeExplicitIntentBoost(
+      intentProduct,
+      [intentProduct],
+      []
+    );
+    const outboundDirectBoost = computeExplicitIntentBoost(
+      intentProduct,
+      [],
+      [intentProduct]
+    );
+    const relatedBoost = computeExplicitIntentBoost(
+      relatedProduct,
+      [],
+      [intentProduct]
+    );
+    const staleOutboundBoost = computeExplicitIntentBoost(
+      intentProduct,
+      [],
+      [intentProduct],
+      { 'intent-product': Date.now() - 14 * 24 * 60 * 60 * 1000 }
+    );
+
+    assert.strictEqual(savedDirectBoost, 90);
+    assert.strictEqual(outboundDirectBoost, 120);
+    assert.ok(relatedBoost > 0, 'A related product should inherit some purchase intent');
+    assert.ok(
+      staleOutboundBoost < outboundDirectBoost,
+      'Older store clicks should lose influence over time'
+    );
+    assert.ok(
+      relatedBoost < savedDirectBoost,
+      'Related products should not outrank the exact item the visitor saved'
+    );
+  });
 });
 
 describe('Phase 4: Deduplication and Diversity', () => {
@@ -276,6 +471,9 @@ describe('Phase 4: Deduplication and Diversity', () => {
       queries: [],
       categories: [],
       viewedProductIds: [],
+      savedProductIds: [],
+      outboundClickedProductIds: [],
+      outboundClickTimestamps: {},
       preferredPriceMin: null,
       preferredPriceMax: null,
       seed: 42,

@@ -1571,11 +1571,15 @@ export function searchAndRankProducts(
 }
 
 const VISITOR_PROFILE_KEY = 'aqurivo_visitor_profile_v2';
+const OUTBOUND_CLICK_HALF_LIFE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface VisitorInterestProfile {
   queries: string[];
   categories: string[];
   viewedProductIds: string[];
+  savedProductIds: string[];
+  outboundClickedProductIds: string[];
+  outboundClickTimestamps: Record<string, number>;
   preferredPriceMin: number | null;
   preferredPriceMax: number | null;
   seed: number;
@@ -1587,6 +1591,9 @@ export function getOrInitVisitorProfile(): VisitorInterestProfile {
       queries: [],
       categories: [],
       viewedProductIds: [],
+      savedProductIds: [],
+      outboundClickedProductIds: [],
+      outboundClickTimestamps: {},
       preferredPriceMin: null,
       preferredPriceMax: null,
       seed: 1,
@@ -1602,6 +1609,25 @@ export function getOrInitVisitorProfile(): VisitorInterestProfile {
         viewedProductIds: Array.isArray(parsed.viewedProductIds)
           ? parsed.viewedProductIds.slice(0, 16)
           : [],
+        savedProductIds: Array.isArray(parsed.savedProductIds)
+          ? parsed.savedProductIds.filter((id): id is string => typeof id === 'string').slice(0, 16)
+          : [],
+        outboundClickedProductIds: Array.isArray(parsed.outboundClickedProductIds)
+          ? parsed.outboundClickedProductIds
+              .filter((id): id is string => typeof id === 'string')
+              .slice(0, 16)
+          : [],
+        outboundClickTimestamps:
+          parsed.outboundClickTimestamps &&
+          typeof parsed.outboundClickTimestamps === 'object' &&
+          !Array.isArray(parsed.outboundClickTimestamps)
+            ? Object.fromEntries(
+                Object.entries(parsed.outboundClickTimestamps).filter(
+                  (entry): entry is [string, number] =>
+                    typeof entry[1] === 'number' && Number.isFinite(entry[1])
+                )
+              )
+            : {},
         preferredPriceMin:
           typeof parsed.preferredPriceMin === 'number' && Number.isFinite(parsed.preferredPriceMin)
             ? parsed.preferredPriceMin
@@ -1622,6 +1648,9 @@ export function getOrInitVisitorProfile(): VisitorInterestProfile {
     queries: [],
     categories: [],
     viewedProductIds: [],
+    savedProductIds: [],
+    outboundClickedProductIds: [],
+    outboundClickTimestamps: {},
     preferredPriceMin: null,
     preferredPriceMax: null,
     seed: Math.floor(Math.random() * 10000) + 1,
@@ -1641,16 +1670,40 @@ export function recordVisitorInteraction(input: {
   categorySlug?: string;
   priceAmount?: number | null;
   query?: string;
-  action?: 'view' | 'swipe' | 'save' | 'search';
+  action?: 'view' | 'swipe' | 'save' | 'unsave' | 'outbound' | 'search';
 }): void {
   if (typeof window === 'undefined') return;
   const profile = getOrInitVisitorProfile();
 
   if (input.productId) {
-    profile.viewedProductIds = [
-      input.productId,
-      ...profile.viewedProductIds.filter((id) => id !== input.productId),
-    ].slice(0, 16);
+    if (input.action === 'save') {
+      profile.savedProductIds = [
+        input.productId,
+        ...profile.savedProductIds.filter((id) => id !== input.productId),
+      ].slice(0, 16);
+    } else if (input.action === 'unsave') {
+      profile.savedProductIds = profile.savedProductIds.filter(
+        (id) => id !== input.productId
+      );
+    } else {
+      profile.viewedProductIds = [
+        input.productId,
+        ...profile.viewedProductIds.filter((id) => id !== input.productId),
+      ].slice(0, 16);
+      if (input.action === 'outbound') {
+        profile.outboundClickedProductIds = [
+          input.productId,
+          ...profile.outboundClickedProductIds.filter((id) => id !== input.productId),
+        ].slice(0, 16);
+        profile.outboundClickTimestamps[input.productId] = Date.now();
+        const retainedIds = new Set(profile.outboundClickedProductIds);
+        profile.outboundClickTimestamps = Object.fromEntries(
+          Object.entries(profile.outboundClickTimestamps).filter(([id]) =>
+            retainedIds.has(id)
+          )
+        );
+      }
+    }
   }
 
   if (input.categorySlug && input.categorySlug !== 'all') {
@@ -1864,11 +1917,15 @@ export function isNewVisitor(
 ): boolean {
   if (!profile) return true;
   const hasViewed = Array.isArray(profile.viewedProductIds) && profile.viewedProductIds.length > 0;
+  const hasSaved = Array.isArray(profile.savedProductIds) && profile.savedProductIds.length > 0;
+  const hasOutboundClicks =
+    Array.isArray(profile.outboundClickedProductIds) &&
+    profile.outboundClickedProductIds.length > 0;
   const hasCategories = Array.isArray(profile.categories) && profile.categories.length > 0;
   const hasQueries = Array.isArray(profile.queries) && profile.queries.length > 0;
   const hasActiveDwell = (sessionIntent?.totalActiveSeconds || 0) > 6;
 
-  return !hasViewed && !hasCategories && !hasQueries && !hasActiveDwell;
+  return !hasViewed && !hasSaved && !hasOutboundClicks && !hasCategories && !hasQueries && !hasActiveDwell;
 }
 
 export interface UnifiedRankingComponents {
@@ -2347,6 +2404,12 @@ export function rankProductsForVisitor(
   const sessionIntent = computeSessionIntentVector();
   const dynamicExploration = calculateDynamicExplorationRatio();
   const preferredStores = getVisitorRegionStoreAffinity();
+  const findProfileProducts = (ids: string[]) =>
+    ids
+      .map((id) => base.find((product) => product.id === id || product.slug === id))
+      .filter((product): product is Product => Boolean(product));
+  const savedProducts = findProfileProducts(profile.savedProductIds);
+  const outboundClickedProducts = findProfileProducts(profile.outboundClickedProductIds);
 
   // New Visitor Cold-Start Flow: Focus on editorial data quality, store diversity, and balanced showcase
   const coldStart = isNewVisitor(profile, sessionIntent);
@@ -2375,6 +2438,13 @@ export function rankProductsForVisitor(
 
   const scored = base.map((product) => {
     let score = 0;
+
+    score += computeExplicitIntentBoost(
+      product,
+      savedProducts,
+      outboundClickedProducts,
+      profile.outboundClickTimestamps
+    );
 
     // 1. Boost products matching visitor's recent searches (Exponential Recency Decay)
     for (let i = 0; i < profile.queries.length; i += 1) {
@@ -2467,6 +2537,8 @@ export function rankProductsForVisitor(
   const hasSignals =
     profile.categories.length > 0 ||
     profile.viewedProductIds.length > 0 ||
+    profile.savedProductIds.length > 0 ||
+    profile.outboundClickedProductIds.length > 0 ||
     sessionIntent.totalActiveSeconds > 0;
 
   let rankedProducts: Product[];
@@ -2490,6 +2562,44 @@ export function rankProductsForVisitor(
 
   // Apply diversity to prevent same-category monopolies in browse mode
   return deduplicateProducts(applyCategoryAndStoreDiversity(rankedProducts));
+}
+
+/**
+ * Converts explicit purchase-intent actions into a bounded ranking boost.
+ * Outbound store clicks are stronger than saves; both fade with recency.
+ */
+export function computeExplicitIntentBoost(
+  candidate: Product,
+  savedProducts: Product[],
+  outboundClickedProducts: Product[],
+  outboundClickTimestamps: Record<string, number> = {}
+): number {
+  const getBestIntentBoost = (
+    references: Product[],
+    directBoost: number,
+    similarityWeight: number
+  ) =>
+    references.reduce((best, reference, index) => {
+      const clickedAt = outboundClickTimestamps[reference.id];
+      const ageMs = typeof clickedAt === 'number' ? Date.now() - clickedAt : -1;
+      const timeDecay =
+        directBoost === 120 && ageMs >= 0
+          ? Math.pow(0.5, ageMs / OUTBOUND_CLICK_HALF_LIFE_MS)
+          : 1;
+      const recencyWeight = Math.max(0.5, 1 - index * 0.1) * timeDecay;
+      const isSameProduct =
+        candidate.id === reference.id || candidate.slug === reference.slug;
+      const boost = isSameProduct
+        ? directBoost
+        : Math.max(0, calculateProductSimilarityScore(reference, candidate)) *
+          similarityWeight;
+      return Math.max(best, boost * recencyWeight);
+    }, 0);
+
+  return Math.max(
+    getBestIntentBoost(savedProducts, 90, 0.65),
+    getBestIntentBoost(outboundClickedProducts, 120, 0.85)
+  );
 }
 
 export type ProductFeedEntry =

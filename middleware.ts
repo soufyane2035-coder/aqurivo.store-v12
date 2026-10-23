@@ -61,7 +61,7 @@ const PREVIEW_CSP_HEADER = [
   "frame-ancestors 'self' https://aistudio.google.com https://*.google.com https://*.googleusercontent.com https://*.gstatic.com",
 ].join('; ');
 
-function isAiStudioPreviewHost(request: NextRequest): boolean {
+function getRequestHostname(request: NextRequest): string {
   const rawHost = (
     request.headers.get('x-forwarded-host') ||
     request.headers.get('host') ||
@@ -72,6 +72,12 @@ function isAiStudioPreviewHost(request: NextRequest): boolean {
     .split(',')[0]
     .trim()
     .split(':')[0];
+
+  return rawHost;
+}
+
+function isAiStudioPreviewHost(request: NextRequest): boolean {
+  const rawHost = getRequestHostname(request);
 
   if (
     rawHost === 'aqurivo.store' ||
@@ -147,6 +153,14 @@ function detectPreferredLocale(
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (getRequestHostname(request) === 'www.aqurivo.store') {
+    const url = request.nextUrl.clone();
+    url.protocol = 'https:';
+    url.hostname = 'aqurivo.store';
+    url.port = '';
+    return applySecurityHeaders(request, NextResponse.redirect(url, 308));
+  }
+
   const detectedCountry = (
     request.headers.get('x-vercel-ip-country') ||
     request.headers.get('cf-ipcountry') ||
@@ -204,5 +218,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|woff|woff2)$).*)',
+    '/robots.txt',
+    '/sitemap.xml',
   ],
 };

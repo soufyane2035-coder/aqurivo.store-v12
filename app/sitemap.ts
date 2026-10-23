@@ -21,7 +21,6 @@ function toAbsoluteImageUrl(rawUrl: string | undefined): string | null {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
   const [products, articles, categories] = await Promise.all([
     listPublishedProducts(),
     listPublishedArticles(),
@@ -38,7 +37,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const isHome = pathSuffix === '';
       return {
         url: locale === 'ar' ? arUrl : enUrl,
-        lastModified: now,
         changeFrequency: pathSuffix === '/tools' ? ('weekly' as const) : ('daily' as const),
         priority: isHome ? 1.0 : 0.9,
         ...(isHome ? { images: [heroImageUrl] } : {}),
@@ -61,7 +59,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const enUrl = `${BASE_URL}/en/${page}`;
         return {
           url: locale === 'ar' ? arUrl : enUrl,
-          lastModified: now,
           changeFrequency: 'monthly' as const,
           priority: 0.7,
           alternates: {
@@ -83,7 +80,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const transparencyEntries: MetadataRoute.Sitemap = rootTransparencyPages.map(
     (page) => ({
       url: `${BASE_URL}/${page}`,
-      lastModified: now,
       changeFrequency: 'monthly' as const,
       priority: 0.65,
     })
@@ -92,6 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const productEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
     products.map((product) => {
       const encoded = encodeURIComponent(product.slug);
+      const modifiedAt = product.updatedAt || product.createdAt;
       const arUrl = `${BASE_URL}/ar/products/${encoded}`;
       const enUrl = `${BASE_URL}/en/products/${encoded}`;
       const productImages = Array.isArray(product.images)
@@ -102,7 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       return {
         url: locale === 'ar' ? arUrl : enUrl,
-        lastModified: new Date(product.updatedAt || product.createdAt || now),
+        ...(modifiedAt ? { lastModified: new Date(modifiedAt) } : {}),
         changeFrequency: 'weekly' as const,
         priority: 0.85,
         ...(productImages.length > 0 ? { images: productImages } : {}),
@@ -120,13 +117,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const articleEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
     articles.map((article) => {
       const encoded = encodeURIComponent(article.slug);
+      const modifiedAt = article.updatedAt || article.publishedAt;
       const arUrl = `${BASE_URL}/ar/guides/${encoded}`;
       const enUrl = `${BASE_URL}/en/guides/${encoded}`;
       const coverUrl = toAbsoluteImageUrl(article.coverImage);
 
       return {
         url: locale === 'ar' ? arUrl : enUrl,
-        lastModified: new Date(article.updatedAt || article.publishedAt || now),
+        ...(modifiedAt ? { lastModified: new Date(modifiedAt) } : {}),
         changeFrequency: 'weekly' as const,
         priority: 0.85,
         ...(coverUrl ? { images: [coverUrl] } : {}),
@@ -148,7 +146,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const enUrl = `${BASE_URL}/en/categories/${encoded}`;
       return {
         url: locale === 'ar' ? arUrl : enUrl,
-        lastModified: now,
         changeFrequency: 'weekly' as const,
         priority: 0.85,
         alternates: {
@@ -168,7 +165,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const enUrl = `${BASE_URL}/en/tools/${tool.slug}`;
       return {
         url: locale === 'ar' ? arUrl : enUrl,
-        lastModified: now,
         changeFrequency: 'monthly' as const,
         priority: 0.85,
         alternates: {

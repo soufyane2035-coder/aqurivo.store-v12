@@ -887,6 +887,8 @@ export default async function ProductPage({
                 href={affiliateUrl}
                 label={isAr ? 'اشتري الآن' : 'Buy Now'}
                 variant="primary"
+                productId={product.id || productSlug}
+                categorySlug={categorySlug}
               />
 
               <p className={styles.redirectNotice}>
@@ -1057,6 +1059,8 @@ export default async function ProductPage({
           href={affiliateUrl}
           label={isAr ? 'اشتري الآن' : 'Buy Now'}
           variant="sticky"
+          productId={product.id || productSlug}
+          categorySlug={categorySlug}
         />
       </div>
 
